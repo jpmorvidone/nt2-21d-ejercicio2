@@ -14,9 +14,16 @@
 
 
 <div class="container-fluid mt-3" id="app">
-    <input type="text" class="form-control" v-model="criterioDeBusqueda"
+    <input type="text" class="form-control" v-model="busquedaPorNombre" v-on:keyup="validar()" 
         placeholder="Ingresar un criterio de busqueda...">
     <br>
+    <input type="text" class="form-control" v-model="busquedaPorDNI" v-on:keyup="validar()" 
+        placeholder="Ingresar un DNI">
+    <br>
+    <div v-if="msjAlertaOn" class="alert alert-warning" id="alertCaracteres" role="alert" >
+        Debe ingresar mas de 3 caracteres
+    </div>
+
     <div class="card-deck m-0">
         <div class="row">
             <div class="col" v-for="persona in personasFiltradas">
@@ -31,6 +38,7 @@
         </div>
     </div>
 
+
 </div>
 
 </html>
@@ -39,7 +47,9 @@
     new Vue({
         el: '#app',
         data: {
-            criterioDeBusqueda: '',
+            busquedaPorNombre: '',
+            busquedaPorDNI: '',
+            msjAlertaOn: false,
             //Aquí, en este array es donde tienen que agregar su información
             personas: [
                 {
@@ -333,17 +343,35 @@
             ]
         },
         computed: {
-            personasFiltradas() {
+            personasFiltradas : function() {
                 return this.personas.filter((persona) => {
-                    let registroCompleto = `${persona.nombre} ${persona.apellido} ${persona.dni} ${persona.correo}`
-                    return registroCompleto.toLowerCase().includes(this.criterioDeBusqueda.toLowerCase())
+                    let dni = persona.dni;
+                    let nombreCompleto = `${persona.nombre} ${persona.apellido}`;
+
+                   if(this.busquedaPorDNI !== '' && this.busquedaPorNombre !== '') {
+                    return dni.includes(this.busquedaPorDNI) &&  
+                            nombreCompleto.toLowerCase().includes(this.busquedaPorNombre.toLowerCase());
+                   } else if(this.busquedaPorDNI !== '' ) {
+                            return dni.includes(this.busquedaPorDNI)
+                        } else {                
+                            return nombreCompleto.toLowerCase().includes(this.busquedaPorNombre.toLowerCase())
+                        }
                 });
             }
         },
         methods: {
             getNombreCompleto(persona) {
                 return `${persona.nombre} ${persona.apellido}`
-            }
+            },
+            validar(event) {
+                let dni = this.busquedaPorDNI != '' && this.busquedaPorDNI.length < 3;
+                let nombre = this.busquedaPorNombre != '' && this.busquedaPorNombre.length < 3;
+                    if( ( dni || nombre )  ) {
+                    this.msjAlertaOn = true;
+                } else {
+                    this.msjAlertaOn = false;
+                }
+    }
         }
     });
 </script>
